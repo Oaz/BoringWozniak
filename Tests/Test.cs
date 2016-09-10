@@ -7,40 +7,56 @@ namespace BoringWozniak
   [TestFixture]
   public class BoringWozniakTest
   {
+    int focusedIndex = GetIndexFor(NamesGenerator.adjectives, "focused");
+    int turingIndex = GetIndexFor(NamesGenerator.surnames, "turing");
+
     [Test]
     public void GenerateNameWithoutRetry ()
     {
-      Assert.That (NamesGenerator.GetRandomName (0, FakeRandomNumbers(0,1)), Is.EqualTo(GeneratedName (0,1)));
+      Assert.That (NamesGenerator.GetRandomName (0, FakeRandomNumbers(focusedIndex,turingIndex)), Is.EqualTo("focused_turing"));
     }
 
     [Test]
     public void GenerateNameWithRetry ()
     {
-      Assert.That (NamesGenerator.GetRandomName (1, FakeRandomNumbers(0,1,2)), Is.EqualTo(GeneratedName (0, 1)+"2"));
+      Assert.That (NamesGenerator.GetRandomName (1, FakeRandomNumbers(focusedIndex,turingIndex,3)), Is.EqualTo("focused_turing3"));
+    }
+
+    [Test]
+    [TestCase(4,8)]
+    [TestCase(0,12)]
+    [TestCase(5,1)]
+    public void GenerateDifferentNames (int adjectiveIndex, int surnameIndex)
+    {
+      var expectedName = NamesGenerator.adjectives [adjectiveIndex] + "_" + NamesGenerator.surnames [surnameIndex];
+      Assert.That (
+        NamesGenerator.GetRandomName (0, FakeRandomNumbers(adjectiveIndex,surnameIndex)),
+        Is.EqualTo(expectedName)
+      );
     }
 
     [Test]
     public void SteveWozniakIsNotBoring ()
     {
-      var boringIndex = NamesGenerator.left.TakeWhile(val => val != "boring").Count();
+      var boringIndex = GetIndexFor(NamesGenerator.adjectives, "boring");
       Assert.That (boringIndex, Is.Not.EqualTo (0));
-      var wozniakIndex = NamesGenerator.right.TakeWhile(val => val != "wozniak").Count();
+      var wozniakIndex = GetIndexFor(NamesGenerator.surnames, "wozniak");
       Assert.That (wozniakIndex, Is.Not.EqualTo (0));
       Assert.That (
-        NamesGenerator.GetRandomName (0, FakeRandomNumbers(boringIndex, wozniakIndex, 0, 0)),
-        Is.EqualTo (GeneratedName (0, 0))
+        NamesGenerator.GetRandomName (0, FakeRandomNumbers(boringIndex, wozniakIndex, focusedIndex, turingIndex)),
+        Is.EqualTo ("focused_turing")
       );
     }
 
-    private string GeneratedName(int adjectiveIndex, int surnameIndex)
-    {
-      return NamesGenerator.left [adjectiveIndex] + "_" + NamesGenerator.right [surnameIndex];
-    }
-
-    private Func<int,int> FakeRandomNumbers(params int[] numbers)
+    private static Func<int,int> FakeRandomNumbers(params int[] numbers)
     {
       var randomCalls = 0;
       return max => numbers [randomCalls++];
+    }
+
+    private static int GetIndexFor(string[] allValues, string expectedValue)
+    {
+      return allValues.TakeWhile(val => val != expectedValue).Count();
     }
   }
 }

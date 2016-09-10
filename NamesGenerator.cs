@@ -1,13 +1,11 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace BoringWozniak
 {
-  // Converted to C# from https://github.com/docker/docker/blob/master/pkg/namesgenerator/names-generator.go
   public class NamesGenerator
   {
-    // GetRandomName generates a random name from the list of adjectives and surnames in this package
-    // formatted as "adjective_surname". For example 'focused_turing'. If retry is non-zero, a random
-    // integer between 0 and 10 will be added to the end of the name, e.g `focused_turing3`
     public static string GetRandomName(int retry)
     {
       var rnd = new Random();
@@ -16,21 +14,21 @@ namespace BoringWozniak
 
     public static string GetRandomName(int retry, Func<int,int> rnd)
     {
-    begin:
-      var name = string.Format ("{0}_{1}", left[rnd(left.Length)], right[rnd(right.Length)]);
-      if( name == "boring_wozniak" )/* Steve Wozniak is not boring */
-      {
-        goto begin;
-      }
-
-      if( retry > 0 )
-      {
-        name = string.Format ("{0}{1}", name, rnd(10));
-      }
-      return name;
+      var baseName =
+        RandomNames (rnd, (adjective, surname) => string.Format ("{0}_{1}", adjective, surname))
+        .First (name => name != "boring_wozniak");
+      var optionalSuffix = (retry > 0) ? rnd (10).ToString () : string.Empty;
+      return baseName + optionalSuffix;
     }
 
-    public static string[] left = new string[] {
+    private static IEnumerable<string> RandomNames(Func<int,int> rnd, Func<string,string,string> format)
+    {
+      begin:
+      yield return format(adjectives[rnd(adjectives.Length)], surnames[rnd(surnames.Length)]);
+      goto begin;
+    }
+
+    public static string[] adjectives = new string[] {
       "admiring",
       "adoring",
       "affectionate",
@@ -105,7 +103,7 @@ namespace BoringWozniak
 
     // Docker, starting from 0.7.x, generates names from notable scientists and hackers.
     // Please, for any amazing man that you add to the list, consider adding an equally amazing woman to it, and vice versa.
-    public static string[] right = new string[] {
+    public static string[] surnames = new string[] {
       // Muhammad ibn Jābir al-Ḥarrānī al-Battānī was a founding father of astronomy. https://en.wikipedia.org/wiki/Mu%E1%B8%A5ammad_ibn_J%C4%81bir_al-%E1%B8%A4arr%C4%81n%C4%AB_al-Batt%C4%81n%C4%AB
       "albattani",
 
