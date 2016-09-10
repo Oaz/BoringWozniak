@@ -11,8 +11,13 @@ namespace BoringWozniak
     public static string GetRandomName(int retry)
     {
       var rnd = new Random();
+      return GetRandomName(retry, max => rnd.Next(max));
+    }
+
+    public static string GetRandomName(int retry, Func<int,int> rnd)
+    {
     begin:
-      var name = string.Format ("{0}_{1}", left[rnd.Next(left.Length)], right[rnd.Next(right.Length)]);
+      var name = string.Format ("{0}_{1}", left[rnd(left.Length)], right[rnd(right.Length)]);
       if( name == "boring_wozniak" )/* Steve Wozniak is not boring */
       {
         goto begin;
@@ -20,12 +25,12 @@ namespace BoringWozniak
 
       if( retry > 0 )
       {
-        name = string.Format ("{0}{1}", name, rnd.Next(10));
+        name = string.Format ("{0}{1}", name, rnd(10));
       }
       return name;
     }
 
-    static string[] left = new string[] {
+    public static string[] left = new string[] {
       "admiring",
       "adoring",
       "affectionate",
@@ -100,7 +105,7 @@ namespace BoringWozniak
 
     // Docker, starting from 0.7.x, generates names from notable scientists and hackers.
     // Please, for any amazing man that you add to the list, consider adding an equally amazing woman to it, and vice versa.
-    static string[] right = new string[] {
+    public static string[] right = new string[] {
       // Muhammad ibn Jābir al-Ḥarrānī al-Battānī was a founding father of astronomy. https://en.wikipedia.org/wiki/Mu%E1%B8%A5ammad_ibn_J%C4%81bir_al-%E1%B8%A4arr%C4%81n%C4%AB_al-Batt%C4%81n%C4%AB
       "albattani",
 
